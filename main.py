@@ -27,7 +27,7 @@ from sklearn.preprocessing import LabelEncoder
 import openai
 import re
 
-openai.api_key = "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"
+openai.api_key = ""
 
 
 
