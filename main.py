@@ -24,10 +24,7 @@ from sklearn.neighbors import KNeighborsClassifier
 from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
 from sklearn.preprocessing import StandardScaler
 from sklearn.preprocessing import LabelEncoder
-import openai
 import re
-
-openai.api_key = ""
 
 
 
@@ -473,57 +470,6 @@ async def transform_dataset(name: str, target: str, encode_categoricals: bool = 
 
     except Exception as e:
         return f"Error during dataset transformation: {str(e)}"
-
-@mcp.tool(description="Perform automatic feature engineering using OpenAI API")
-async def feature_engineering_with_openai(name: str) -> str:
-    """
-    Sends dataset information to OpenAI, receives a feature engineering script, executes it, and updates the dataset.
-    """
-    df = dataset_cache.get(name)
-    if df is None:
-        return f"Dataset '{name}' not found."
-
-    try:
-        # Build dataset summary to send
-        summary_info = {
-            "columns": list(df.columns),
-            "dtypes": df.dtypes.astype(str).to_dict(),
-            "sample_rows": df.head(3).to_dict(orient="records")
-        }
-
-        # Create prompt
-        prompt = f"""
-You are a data scientist. Given the following dataset structure, return a Python function named `engineer_features(df)` that adds relevant feature-engineered columns to the DataFrame.
-
-Respond ONLY with the function definition (no text or comments). It should take `df` as input and return `df`.
-
-Dataset info:
-{json.dumps(summary_info, indent=2)}
-        """
-
-        # Call OpenAI API
-        response = openai.ChatCompletion.create(
-            model="gpt-4",
-            messages=[{"role": "user", "content": prompt}],
-            temperature=0.2,
-        )
-        code = response["choices"][0]["message"]["content"]
-        code = re.sub(r"^```(python)?\s*|```$", "", code.strip(), flags=re.MULTILINE)
-
-        # Execute returned function
-        local_vars = {}
-        exec(code, {}, local_vars)
-        if "engineer_features" not in local_vars:
-            return "OpenAI did not return a valid function."
-
-        # Apply transformation
-        df = local_vars["engineer_features"](df)
-        dataset_cache[name] = df
-
-        return f"Feature engineering applied. Dataset '{name}' now has shape {df.shape}."
-
-    except Exception as e:
-        return f"Error during feature engineering: {str(e)}"
 
 
 
