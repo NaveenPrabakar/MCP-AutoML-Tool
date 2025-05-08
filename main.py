@@ -24,6 +24,7 @@ from sklearn.neighbors import KNeighborsClassifier
 from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
 from sklearn.preprocessing import StandardScaler
 from sklearn.preprocessing import LabelEncoder
+from sklearn.model_selection import RandomizedSearchCV
 import re
 
 
@@ -84,7 +85,7 @@ async def preview_dataset(name: str, rows: int = 5) -> str:
 
 
 @mcp.tool(description="Train a classification or regression model from dataset")
-async def train_model(name: str, target_column: str, model_type: str = "classification", model_name: Optional[str] = None) -> str:
+async def train_model(name: str, target_column: str, model_type: str, model_name: Optional[str] = None) -> str:
     """
     Train a model from the uploaded dataset.
 
@@ -254,31 +255,41 @@ async def visualize_data_distribution(name: str) -> str:
     """
     Generate histograms for each numeric column in the dataset.
     """
+    import math
+    import matplotlib.pyplot as plt
+    import seaborn as sns
+
     df = dataset_cache.get(name)
     if df is None:
         return f"Dataset '{name}' not found."
 
     try:
         numeric_cols = df.select_dtypes(include=['float64', 'int64']).columns
-        if not numeric_cols.any():
+        num_cols = len(numeric_cols)
+        if num_cols == 0:
             return f"No numeric columns found in dataset '{name}'."
-        
-        plt.figure(figsize=(10, 6))
-        for idx, col in enumerate(numeric_cols):
-            plt.subplot(2, len(numeric_cols)//2, idx+1)
+
+        # Determine number of rows and columns for subplots
+        n_cols = min(3, num_cols)  # Limit to 3 plots per row
+        n_rows = math.ceil(num_cols / n_cols)
+
+        plt.figure(figsize=(5 * n_cols, 4 * n_rows))
+        for idx, col in enumerate(numeric_cols, start=1):
+            plt.subplot(n_rows, n_cols, idx)
             sns.histplot(df[col], kde=True)
             plt.title(f"Distribution of {col}")
-        
+
         plt.tight_layout()
         plt.show()
-        return f"Data distribution visualization completed."
-    
+        return "Data distribution visualization completed."
+
     except Exception as e:
         return f"Error during visualization: {str(e)}"
+
     
 
-@mcp.tool(description="Generate a confusion matrix for the classification model")
-async def plot_confusion_matrix(name: str) -> str:
+@mcp.tool(description="Generate a confusion matrix for the classification model, define the target_column")
+async def plot_confusion_matrix(name: str, target_column: str) -> str:
     """
     Plot the confusion matrix for the trained classification model.
     """
@@ -287,7 +298,7 @@ async def plot_confusion_matrix(name: str) -> str:
     if model is None or df is None:
         return f"Model or dataset '{name}' not found."
 
-    target = config.target_column
+    target = target_column
     if target not in df.columns:
         return f"Target column '{target}' not in dataset."
 
@@ -331,7 +342,7 @@ async def dataset_summary(name: str) -> str:
 
 
 @mcp.tool(description="Hyperparameter tuning with GridSearchCV")
-async def hyperparameter_tuning(name: str, target: str, model_type: str = "classification", model_name: Optional[str] = None) -> str:
+async def hyperparameter_tuning(name: str, target: str, model_type: str, model_name: Optional[str] = None) -> str:
     """
     Perform hyperparameter tuning using GridSearchCV.
     """
@@ -384,7 +395,7 @@ async def hyperparameter_tuning(name: str, target: str, model_type: str = "class
         else:
             return f"Invalid model type. Choose 'classification' or 'regression'."
 
-        grid_search = GridSearchCV(model, param_grid, cv=5, n_jobs=-1)
+        grid_search = RandomizedSearchCV(model, param_grid, n_iter=5, cv=3, n_jobs=-1, random_state=42)
         grid_search.fit(X_train, y_train)
         best_params = grid_search.best_params_
 
