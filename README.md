@@ -24,10 +24,8 @@ For storing processed datasets.
 1. **Clone the repository and set up a virtual environment:**
 
 ```bash
-git clone <your-repo-url>
-cd <project-directory>
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
+git clone https://github.com/NaveenPrabakar/MCP-AutoML-Tool.git
+cd MCP-AutoML-Tool
 ```
 
 2. **Install Python dependencies:**
