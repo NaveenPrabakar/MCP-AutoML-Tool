@@ -26,8 +26,8 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.preprocessing import LabelEncoder
 from sklearn.model_selection import RandomizedSearchCV
 import re
-
-
+import concurrent.futures
+import time
 
 
 S3_BUCKET = "nflfootballwebsite" 
@@ -340,69 +340,77 @@ async def dataset_summary(name: str) -> str:
         return f"Error generating dataset summary: {str(e)}"
 
 
-
-@mcp.tool(description="Hyperparameter tuning with GridSearchCV")
+@mcp.tool(description="Hyperparameter tuning with RandomizedSearchCV and timeout")
 async def hyperparameter_tuning(name: str, target: str, model_type: str, model_name: Optional[str] = None) -> str:
     """
-    Perform hyperparameter tuning using GridSearchCV.
+    Perform hyperparameter tuning using RandomizedSearchCV with a timeout.
     """
     df = dataset_cache.get(name)
     if df is None:
         return f"Dataset '{name}' not found."
-
     if target not in df.columns:
         return f"Target column '{target}' not in dataset."
 
     X = df.drop(columns=[target])
     y = df[target]
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+    def tune():
+        try:
+            if model_type == "classification":
+                if model_name == "logistic_regression" or model_name is None:
+                    model = LogisticRegression(max_iter=1000)
+                    param_grid = {'C': [0.01, 0.1, 1], 'solver': ['liblinear'], 'penalty': ['l2']}
+                elif model_name == "random_forest":
+                    model = RandomForestClassifier()
+                    param_grid = {'n_estimators': [50, 100], 'max_depth': [None, 10]}
+                elif model_name == "svm":
+                    model = SVC()
+                    param_grid = {'C': [0.1, 1], 'kernel': ['linear']}
+                elif model_name == "knn":
+                    model = KNeighborsClassifier()
+                    param_grid = {'n_neighbors': [3, 5], 'weights': ['uniform']}
+                elif model_name == "decision_tree":
+                    model = DecisionTreeClassifier()
+                    param_grid = {'max_depth': [None, 10], 'min_samples_split': [2, 5]}
+                else:
+                    return f"Invalid classification model name: {model_name}"
+
+            elif model_type == "regression":
+                if model_name == "linear_regression" or model_name is None:
+                    model = LinearRegression()
+                    param_grid = {'fit_intercept': [True, False]}
+                elif model_name == "random_forest":
+                    model = RandomForestRegressor()
+                    param_grid = {'n_estimators': [50, 100], 'max_depth': [None, 10]}
+                elif model_name == "svm":
+                    model = SVR()
+                    param_grid = {'C': [0.1, 1], 'kernel': ['linear']}
+                elif model_name == "decision_tree":
+                    model = DecisionTreeRegressor()
+                    param_grid = {'max_depth': [None, 10], 'min_samples_split': [2, 5]}
+                else:
+                    return f"Invalid regression model name: {model_name}"
+
+            else:
+                return f"Invalid model type. Choose 'classification' or 'regression'."
+
+            search = RandomizedSearchCV(model, param_grid, n_iter=3, cv=3, n_jobs=-1, random_state=42)
+            start = time.time()
+            search.fit(X_train, y_train)
+            duration = time.time() - start
+            return f"Best hyperparameters for {model_name or model.__class__.__name__}: {search.best_params_} (took {duration:.2f} seconds)"
+        except Exception as e:
+            return f"Error during hyperparameter tuning: {str(e)}"
+
     try:
-        if model_type == "classification":
-            if model_name == "logistic_regression" or model_name is None:
-                model = LogisticRegression(max_iter=1000)
-                param_grid = {'C': [0.01, 0.1, 1, 10], 'solver': ['liblinear', 'lbfgs'], 'penalty': ['l2', 'none']}
-            elif model_name == "random_forest":
-                model = RandomForestClassifier(n_estimators=100)
-                param_grid = {'n_estimators': [100, 200], 'max_depth': [None, 10, 20]}
-            elif model_name == "svm":
-                model = SVC(kernel='linear')
-                param_grid = {'C': [0.01, 0.1, 1, 10], 'kernel': ['linear', 'rbf']}
-            elif model_name == "knn":
-                model = KNeighborsClassifier(n_neighbors=5)
-                param_grid = {'n_neighbors': [3, 5, 7], 'weights': ['uniform', 'distance']}
-            elif model_name == "decision_tree":
-                model = DecisionTreeClassifier(random_state=42)
-                param_grid = {'max_depth': [None, 10, 20], 'min_samples_split': [2, 5, 10]}
-            else:
-                return f"Invalid classification model name: {model_name}"
+        with concurrent.futures.ThreadPoolExecutor() as executor:
+            future = executor.submit(tune)
+            result = future.result(timeout=30)  
+            return result
+    except concurrent.futures.TimeoutError:
+        return "Hyperparameter tuning exceeded the 30-second timeout."
 
-        elif model_type == "regression":
-            if model_name == "linear_regression" or model_name is None:
-                model = LinearRegression()
-                param_grid = {'fit_intercept': [True, False], 'normalize': [True, False]}
-            elif model_name == "random_forest":
-                model = RandomForestRegressor(n_estimators=100)
-                param_grid = {'n_estimators': [100, 200], 'max_depth': [None, 10, 20]}
-            elif model_name == "svm":
-                model = SVR(kernel='linear')
-                param_grid = {'C': [0.01, 0.1, 1, 10], 'kernel': ['linear', 'rbf']}
-            elif model_name == "decision_tree":
-                model = DecisionTreeRegressor(random_state=42)
-                param_grid = {'max_depth': [None, 10, 20], 'min_samples_split': [2, 5, 10]}
-            else:
-                return f"Invalid regression model name: {model_name}"
-
-        else:
-            return f"Invalid model type. Choose 'classification' or 'regression'."
-
-        grid_search = RandomizedSearchCV(model, param_grid, n_iter=5, cv=3, n_jobs=-1, random_state=42)
-        grid_search.fit(X_train, y_train)
-        best_params = grid_search.best_params_
-
-        return f"Best hyperparameters for {model_name}: {best_params}"
-
-    except Exception as e:
-        return f"Error during hyperparameter tuning: {str(e)}"
 
 
 
