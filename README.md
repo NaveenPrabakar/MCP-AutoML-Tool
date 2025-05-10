@@ -49,8 +49,7 @@ chmod 600 ~/.kaggle/kaggle.json
 4. **Set up AWS credentials:**
     - Run `aws configure` and enter your AWS Access Key, Secret Key, and region.
 5. **Set up MongoDB:**
-    - For local:
-
+   
 ```bash
 docker run -d -p 27017:27017 --name mongo mongo:latest
 ```
