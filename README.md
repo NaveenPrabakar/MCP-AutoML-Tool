@@ -18,6 +18,8 @@ For programmatically downloading datasets from Kaggle.
 For saving trained models.
 - **MongoDB (local or remote)**
 For storing processed datasets.
+- **Claude Desktop**
+For connecting the MCP server to LLM
 
 **Installation Steps:**
 
