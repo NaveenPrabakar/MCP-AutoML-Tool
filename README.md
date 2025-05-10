@@ -54,7 +54,6 @@ chmod 600 ~/.kaggle/kaggle.json
 docker run -d -p 27017:27017 --name mongo mongo:latest
 ```
 
-    - For remote:
 Use your MongoDB connection string in the code.
 6. **Run the MCP server:**
 
