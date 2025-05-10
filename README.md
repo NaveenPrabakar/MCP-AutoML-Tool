@@ -4,6 +4,85 @@
 
 Automating the machine learning (ML) workflow is crucial for efficient, reproducible, and scalable data science. Traditional ML pipelines require repetitive code for data ingestion, cleaning, transformation, model training, hyperparameter tuning, and deployment, which distracts data scientists from analytical tasks. The Model Context Protocol (MCP) is designed as an open protocol to automate these processes, enabling Large Language Models (LLMs) and other agents to execute end-to-end ML workflows, including cloud deployment and database persistence. This report details the technical architecture, algorithms, and experimental results of MCP-Auto-ML, with a case study on the Heart Disease dataset from Kaggle[^1][^2][^3][^7].
 
+## Installation
+
+**Prerequisites:**
+
+- **Python 3.8+**
+Required for all major data science and ML libraries.
+- **pip**
+Python package manager for installing dependencies.
+- **Kaggle API credentials**
+For programmatically downloading datasets from Kaggle.
+- **AWS account and S3 bucket**
+For saving trained models.
+- **MongoDB (local or remote)**
+For storing processed datasets.
+
+**Installation Steps:**
+
+1. **Clone the repository and set up a virtual environment:**
+
+```bash
+git clone <your-repo-url>
+cd <project-directory>
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+```
+
+2. **Install Python dependencies:**
+
+```bash
+pip install pandas scikit-learn matplotlib seaborn joblib boto3 pymongo kaggle fastapi uvicorn
+```
+
+3. **Configure Kaggle API:**
+    - Download `kaggle.json` from your Kaggle account.
+    - Place it in `~/.kaggle/` and set permissions:
+
+```bash
+mkdir -p ~/.kaggle
+cp kaggle.json ~/.kaggle/
+chmod 600 ~/.kaggle/kaggle.json
+```
+
+4. **Set up AWS credentials:**
+    - Run `aws configure` and enter your AWS Access Key, Secret Key, and region.
+5. **Set up MongoDB:**
+    - For local:
+
+```bash
+docker run -d -p 27017:27017 --name mongo mongo:latest
+```
+
+    - For remote:
+Use your MongoDB connection string in the code.
+6. **Run the MCP server:**
+
+```bash
+Use Claude Desktop to run the server
+```
+
+
+---
+
+## Tech Stack
+
+| Component | Technology | Purpose |
+| :-- | :-- | :-- |
+| Data Handling | pandas | Data loading, manipulation, cleaning |
+| ML Modeling | scikit-learn | Model training, evaluation, hyperparameter tuning |
+| Visualization | matplotlib, seaborn | Data and result visualization |
+| Storage | AWS S3 (boto3) | Saving trained models |
+| Database | MongoDB (pymongo) | Storing processed datasets |
+| Automation | FastAPI, MCP | Exposing tools via API and protocol |
+| Data Source | Kaggle API | Automated dataset download |
+| Serialization | joblib | Model persistence |
+
+
+---
+
+
 ## 2. Problem Definition and Algorithm
 
 ### 2.1 Task Definition
