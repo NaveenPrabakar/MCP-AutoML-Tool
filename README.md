@@ -1,5 +1,7 @@
 # MCP-Auto-ML: Technical Project Report
 
+[![Watch the video](https://img.youtube.com/vi/Gnmf-vlo5eM/0.jpg)](https://youtu.be/Gnmf-vlo5eM?si=wXlJggrSn5PGk2GI)
+
 ## 1. Introduction
 
 Automating the machine learning (ML) workflow is crucial for efficient, reproducible, and scalable data science. Traditional ML pipelines require repetitive code for data ingestion, cleaning, transformation, model training, hyperparameter tuning, and deployment, which distracts data scientists from analytical tasks. The Model Context Protocol (MCP) is designed as an open protocol to automate these processes, enabling Large Language Models (LLMs) and other agents to execute end-to-end ML workflows, including cloud deployment and database persistence. This report details the technical architecture, algorithms, and experimental results of MCP-Auto-ML, with a case study on the Heart Disease dataset from Kaggle[^1][^2][^3][^7].
