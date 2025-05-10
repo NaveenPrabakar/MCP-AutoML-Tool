@@ -292,63 +292,8 @@ await save_dataset_to_mongo("heart_disease")
 
 **Contact:**
 
-- Project Authors, May 2025
+- Naveen Prbakar, May 2025
 
 ---
 
-**References:**
--[^1] AI-Final-Project.pdf
--[^2] main.py
--[^3] CS 391L ML Project Report Format
--[^7] ProjectPro: Data Science Project Report Guide
-
----
-
-*This document is structured for technical audiences, with explicit algorithmic and architectural details, quantitative results, and references to source code and workflow APIs for reproducibility and clarity[^3][^7][^8].*
-
-<div style="text-align: center">⁂</div>
-
-[^1]: AI-Final-Project.pdf
-
-[^2]: main.py
-
-[^3]: https://www.cs.utexas.edu/~mooney/cs391L/paper-template.html
-
-[^4]: https://www.dataversity.net/effective-code-documentation-for-data-science-projects/
-
-[^5]: https://techwtoolkit.com/2023/06/11/the-rise-of-writing-for-machine-learning-and-ai-an-emerging-discipline-for-technical-writers/
-
-[^6]: https://dev.to/luxdevhq/generic-folder-structure-for-your-machine-learning-projects-4coe
-
-[^7]: https://www.projectpro.io/article/data-science-project-report/620
-
-[^8]: https://cseweb.ucsd.edu/~elkan/250B/writing.pdf
-
-[^9]: https://www.turing.com/kb/how-to-write-research-paper-in-machine-learning-area
-
-[^10]: https://www.linkedin.com/pulse/documentation-techniques-data-science-projects-insigene-vgddc
-
-[^11]: https://doakio.com/blog/writing-for-machine-learning-new-challenges-for-technical-writers/
-
-[^12]: https://www.altexsoft.com/blog/machine-learning-project-structure-stages-roles-and-tools/
-
-[^13]: https://www.theiet.org/media/5182/technical-report-writing.pdf
-
-[^14]: https://www.reddit.com/r/datascience/comments/1dt1mle/best_resources_for_data_science_project/
-
-[^15]: https://www.reddit.com/r/technicalwriting/comments/1diy75q/how_do_i_learn_enough_deep_learning_to_be_able_to/
-
-[^16]: https://www.reddit.com/r/MachineLearning/comments/ivq3va/d_machine_learning_project_repo_structure/
-
-[^17]: https://ibm.github.io/data-science-best-practices/documentation.html
-
-[^18]: https://www.madcapsoftware.com/blog/ai-for-technical-writers/
-
-[^19]: https://www.youtube.com/watch?v=Hvfaf73hnqs
-
-[^20]: https://www.kdnuggets.com/2022/12/5-rules-good-data-science-project-documentation.html
-
-[^21]: https://www.reddit.com/r/learnmachinelearning/comments/16j9wot/how_to_best_structure_a_ml_project/
-
-[^22]: https://www.reddit.com/r/MachineLearning/comments/mm03m1/d_whats_the_best_approach_to_document_a_machine/
 
