@@ -28,6 +28,7 @@ from sklearn.model_selection import RandomizedSearchCV
 import re
 import concurrent.futures
 import time
+from ydata_profiling import ProfileReport
 
 
 S3_BUCKET = "nflfootballwebsite" 
@@ -491,9 +492,72 @@ async def transform_dataset(name: str, target: str, encode_categoricals: bool = 
         return f"Error during dataset transformation: {str(e)}"
 
 
+@mcp.tool(description="Plot feature importances for a trained model")
+async def plot_feature_importance(name: str, target_column: str) -> str:
+    model = model_cache.get(name)
+    df = dataset_cache.get(name)
+    if model is None or df is None:
+        return f"Model or dataset '{name}' not found."
+
+    if target_column not in df.columns:
+        return f"Target column '{target_column}' not in dataset."
+
+    try:
+        feature_data = df.drop(columns=[target_column])
+        
+        if hasattr(model, "feature_importances_"):
+            importances = model.feature_importances_
+            feature_names = feature_data.columns
+        elif hasattr(model, "coef_"):
+            importances = model.coef_[0] if hasattr(model.coef_, "__len__") else model.coef_
+            feature_names = feature_data.columns
+        else:
+            return f"Model type does not support feature importances or coefficients."
+
+        importance_df = pd.DataFrame({
+            "Feature": feature_names,
+            "Importance": importances
+        }).sort_values("Importance", ascending=False)
+
+        plt.figure(figsize=(10, 6))
+        sns.barplot(data=importance_df, x="Importance", y="Feature")
+        plt.title(f"Feature Importance for Model '{name}'")
+        plt.tight_layout()
+        plt.show()
+
+        return "Feature importance plotted."
+
+    except Exception as e:
+        return f"Error plotting feature importance: {str(e)}"
+
+    
+
+@mcp.tool(description="Generate a full data profiling report")
+async def generate_data_profile(name: str) -> str:
+    df = dataset_cache.get(name)
+    if df is None:
+        return f"Dataset '{name}' not found."
+
+    try:
+        profile = ProfileReport(df, title=f"Data Profile: {name}", explorative=True)
+        output_path = f"{name}_profile.html"
+        profile.to_file(output_path)
+
+        abs_path = os.path.abspath(output_path)
+        return f"Data profile generated and saved as {output_path}.\nFull path: {abs_path}\nOpen it in a browser to view."
+
+    except Exception as e:
+        return f"Error generating data profile: {str(e)}"
+
+
+
+
+
 
 if __name__ == "__main__":
     print("Starting ML Modeler MCP Server...")
-    mcp.run()
+    mcp.run(transport="stdio")
+
+
 
 
